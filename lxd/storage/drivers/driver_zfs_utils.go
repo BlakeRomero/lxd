@@ -367,3 +367,16 @@ func (d *zfs) receiveDataset(vol Volume, conn io.ReadWriteCloser, writeWrapper f
 
 	return nil
 }
+
+func (d *zfs) setBlocksize(vol Volume) error {
+	
+	if vol.contentType == ContentTypeFS {
+		vol.config["recordsize"] = vol.config["zfs.blocksize"]
+	}
+	
+	if vol.contentType == ContentTypeBlock {
+		vol.config["volblocksize"] = vol.config["zfs.blocksize"]
+	}
+
+	return nil
+}

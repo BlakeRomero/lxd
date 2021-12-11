@@ -351,6 +351,7 @@ func (d *zfs) Validate(config map[string]string) error {
 		}),
 		"volume.zfs.remove_snapshots": validate.Optional(validate.IsBool),
 		"volume.zfs.use_refquota":     validate.Optional(validate.IsBool),
+		"volume.zfs.blocksize":		   validate.Optional(validate.IsSize),
 	}
 
 	return d.validatePool(config, rules)

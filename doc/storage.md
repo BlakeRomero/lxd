@@ -36,6 +36,7 @@ volume.block.mount\_options     | string    | block based driver (lvm)          
 volume.size                     | string    | appropriate driver                | unlimited (10GiB for block)| Default volume size
 volume.zfs.remove\_snapshots    | bool      | zfs driver                        | false                      | Remove snapshots as needed
 volume.zfs.use\_refquota        | bool      | zfs driver                        | false                      | Use refquota instead of quota for space.
+volume.zfs.blocksize            | string    | zfs driver                        | false                      | Default blocksize.
 zfs.clone\_copy                 | string    | zfs driver                        | true                       | Whether to use ZFS lightweight clones rather than full dataset copies (boolean) or "rebase" to copy based on the initial image.
 zfs.pool\_name                  | string    | zfs driver                        | name of the pool           | Name of the zpool
 
@@ -59,7 +60,8 @@ snapshots.expiry        | string    | custom volume             | -             
 snapshots.schedule      | string    | custom volume             | -                                     | Cron expression (`<minute> <hour> <dom> <month> <dow>`), or a comma separated list of schedule aliases `<@hourly> <@daily> <@midnight> <@weekly> <@monthly> <@annually> <@yearly>`
 snapshots.pattern       | string    | custom volume             | snap%d                                | Pongo2 template string which represents the snapshot name (used for scheduled snapshots and unnamed snapshots)
 zfs.remove\_snapshots   | string    | zfs driver                | same as volume.zfs.remove\_snapshots  | Remove snapshots as needed
-zfs.use\_refquota       | string    | zfs driver                | same as volume.zfs.zfs\_requota       | Use refquota instead of quota for space
+zfs.use\_refquota       | string    | zfs driver                | same as volume.zfs.use\_requota       | Use refquota instead of quota for space
+zfs.blocksize           | string    | zfs driver                | same as volume.zfs.blocksize          | Default blocksize.
 
 Storage volume configuration keys can be set using the lxc tool with:
 

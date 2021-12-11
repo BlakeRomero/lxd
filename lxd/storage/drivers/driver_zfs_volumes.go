@@ -165,6 +165,12 @@ func (d *zfs) CreateVolume(vol Volume, filler *VolumeFiller, op *operations.Oper
 		}
 	}
 
+	// Set the blocksize for the volume
+	err := d.setBlocksize(vol)
+	if err != nil {
+		return err
+	}
+
 	// For VM images, create a filesystem volume too.
 	if vol.IsVMBlock() {
 		fsVol := vol.NewVMBlockFilesystemVolume()
@@ -176,7 +182,7 @@ func (d *zfs) CreateVolume(vol Volume, filler *VolumeFiller, op *operations.Oper
 		revert.Add(func() { d.DeleteVolume(fsVol, op) })
 	}
 
-	err := vol.MountTask(func(mountPath string, op *operations.Operation) error {
+	err = vol.MountTask(func(mountPath string, op *operations.Operation) error {
 		// Run the volume filler function if supplied.
 		if filler != nil && filler.Fill != nil {
 			var err error
@@ -424,7 +430,17 @@ func (d *zfs) CreateVolumeFromBackup(vol Volume, srcBackup backup.Info, srcData 
 				return err
 			}
 		}
+
+		// Only update the blocksize of filesystem volumes
+		if v.contentType == ContentTypeFS {
+			err := d.setBlocksize(v)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
 	}
+
+
 
 	revertExternal := revert.Clone() // Clone before calling revert.Success() so we can return the Fail func.
 
@@ -633,6 +649,12 @@ func (d *zfs) CreateVolumeFromCopy(vol Volume, srcVol Volume, copySnapshots bool
 		if err != nil {
 			return err
 		}
+
+		// Apply the blocksize
+		err = d.setBlocksize(vol)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Resize volume to the size specified. Only uses volume "size" property and does not use pool/defaults
@@ -747,6 +769,13 @@ func (d *zfs) CreateVolumeFromMigration(vol Volume, conn io.ReadWriteCloser, vol
 		if err != nil {
 			return err
 		}
+
+		
+		// Apply the blocksize
+		err = d.setBlocksize(vol)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -819,6 +848,7 @@ func (d *zfs) ValidateVolume(vol Volume, removeUnknownKeys bool) error {
 	rules := map[string]func(value string) error{
 		"zfs.remove_snapshots": validate.Optional(validate.IsBool),
 		"zfs.use_refquota":     validate.Optional(validate.IsBool),
+		"zfs.blocksize":		validate.Optional(validate.IsSize),
 	}
 
 	return d.validateVolume(vol, rules, removeUnknownKeys)
@@ -863,6 +893,19 @@ func (d *zfs) UpdateVolume(vol Volume, changedConfig map[string]string) error {
 			err = d.SetVolumeQuota(vol, "", false, nil)
 			if err != nil {
 				return err
+			}
+		}
+
+		if k == "zfs.blocksize" {
+
+			vol.config["zfs.blocksize"] = v
+
+			// Only update the blocksize of filesystem volumes
+			if vol.contentType == ContentTypeFS {
+				err := d.setBlocksize(vol)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

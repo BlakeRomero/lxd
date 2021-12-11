@@ -300,6 +300,18 @@ var StorageVolumeConfigKeys = map[string]func(value string) ([]string, error){
 
 		return []string{"zfs"}, nil
 	},
+	"zfs.blocksize": func(value string) ([]string, error) {
+		if value == "" {
+			return SupportedPoolTypes, nil
+		}
+
+		_, err := units.ParseByteSizeString(value)
+		if err != nil {
+			return nil, err
+		}
+
+		return SupportedPoolTypes, nil
+	},
 }
 
 // VolumeSnapshotsGet returns a list of snapshots of the form <volume>/<snapshot-name>.
